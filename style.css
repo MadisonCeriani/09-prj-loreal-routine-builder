@@ -90,6 +90,31 @@ body {
   font-size: 18px;
 }
 
+/* Add emojis to enhance the design */
+.view-details-btn::before {
+  content: "💋 ";
+  font-size: 16px;
+}
+
+.clear-all-btn::before {
+  content: "✨ ";
+  font-size: 16px;
+}
+
+/* Adjust section headers to include emojis */
+.selected-products h2::after {
+  content: " ✨";
+  font-size: 18px;
+}
+
+/* Placeholder message with emoji */
+.placeholder-message::before {
+  content: "✨ ";
+  font-size: 24px;
+  display: block;
+  margin-bottom: 10px;
+}
+
 /* input row */
 .chat-form {
   display: flex;

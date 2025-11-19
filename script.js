@@ -11,6 +11,9 @@ productsContainer.innerHTML = `
   </div>
 `;
 
+/* Update Selected Products header */
+document.querySelector(".selected-products h2").textContent = "Selected Products ✨";
+
 /* Load product data from JSON file */
 async function loadProducts() {
   const response = await fetch("products.json");
