@@ -18,101 +18,80 @@ async function loadProducts() {
   return data.products;
 }
 
-/* Enable product selection */
+/* Function to create and display the modal */
+function createModal(product) {
+  const modalOverlay = document.createElement("div");
+  modalOverlay.classList.add("modal-overlay");
 
-// Track selected products
-let selectedProducts = [];
+  const modal = document.createElement("div");
+  modal.classList.add("modal");
 
-// Function to update the "Selected Products" section
-function updateSelectedProducts() {
-  const selectedProductsContainer = document.getElementById("selectedProducts");
-  selectedProductsContainer.innerHTML = selectedProducts
-    .map(
-      (product) => `
-        <div class="selected-product">
-          <span>${product.name}</span>
-          <button class="remove-product" data-name="${product.name}">Remove</button>
-        </div>
-      `
-    )
-    .join("");
+  modal.innerHTML = `
+    <button class="close-modal">&times;</button>
+    <img src="${product.image}" alt="${product.name}" class="modal-image">
+    <h2>${product.name}</h2>
+    <h3>${product.brand}</h3>
+    <p>${product.description}</p>
+  `;
 
-  // Add event listeners to remove buttons
-  selectedProductsContainer
-    .querySelectorAll(".remove-product")
-    .forEach((button) => {
-      button.addEventListener("click", (e) => {
-        const productName = e.target.getAttribute("data-name");
-        selectedProducts = selectedProducts.filter(
-          (p) => p.name !== productName
-        );
-        updateSelectedProducts();
-        updateProductCards();
-      });
-    });
-}
+  modalOverlay.appendChild(modal);
+  document.body.appendChild(modalOverlay);
 
-// Function to update product card styles based on selection
-function updateProductCards() {
-  document.querySelectorAll(".product-card").forEach((card) => {
-    const productName = card.querySelector("h3").textContent;
-    if (selectedProducts.some((p) => p.name === productName)) {
-      card.classList.add("selected");
-    } else {
-      card.classList.remove("selected");
+  // Close modal on overlay or button click
+  modalOverlay.addEventListener("click", (e) => {
+    if (
+      e.target === modalOverlay ||
+      e.target.classList.contains("close-modal")
+    ) {
+      modalOverlay.remove();
     }
   });
 }
 
-// Create HTML for displaying product cards
+/* Create HTML for displaying product cards */
 function displayProducts(products) {
   productsContainer.innerHTML = products
     .map(
       (product) => `
-        <div class="product-card">
-          <img src="${product.image}" alt="${product.name}">
-          <div class="product-info">
-            <h3>${product.name}</h3>
-            <p>${product.brand}</p>
-            <button class="toggle-description">Show Description</button>
-            <div class="product-description hidden">${product.description}</div>
-          </div>
-        </div>
-      `
+    <div class="product-card">
+      <img src="${product.image}" alt="${product.name}">
+      <div class="product-info">
+        <h3>${product.name}</h3>
+        <p>${product.brand}</p>
+        <button class="view-details-btn" data-name="${product.name}">View Details</button>
+      </div>
+    </div>
+  `
     )
     .join("");
 
-  // Add click event listeners to product cards
-  document.querySelectorAll(".product-card").forEach((card) => {
-    card.addEventListener("click", () => {
-      const productName = card.querySelector("h3").textContent;
+  // Add event listeners to "View Details" buttons
+  const viewDetailsButtons = document.querySelectorAll(".view-details-btn");
+  viewDetailsButtons.forEach((button) => {
+    button.addEventListener("click", async (e) => {
+      e.stopPropagation(); // Prevent triggering product-card click event
+
+      const productName = e.target.dataset.name;
+      const products = await loadProducts();
       const product = products.find((p) => p.name === productName);
 
-      if (selectedProducts.some((p) => p.name === productName)) {
-        selectedProducts = selectedProducts.filter(
-          (p) => p.name !== productName
-        );
-      } else {
-        selectedProducts.push(product);
+      if (product) {
+        createModal(product);
       }
-
-      updateSelectedProducts();
-      updateProductCards();
     });
   });
 
-  // Add event listeners to toggle description visibility
-  document.querySelectorAll(".toggle-description").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const descriptionDiv = e.target.nextElementSibling;
-      if (descriptionDiv.classList.contains("hidden")) {
-        descriptionDiv.classList.remove("hidden");
-        e.target.textContent = "Hide Description";
-      } else {
-        descriptionDiv.classList.add("hidden");
-        e.target.textContent = "Show Description";
-      }
-    });
+  // Add click event listener to product cards
+  productsContainer.addEventListener("click", (e) => {
+    const cardElement = e.target.closest(".product-card");
+    if (!cardElement) return;
+
+    const productName = cardElement.querySelector("h3").textContent;
+    const product = products.find((p) => p.name === productName);
+
+    if (product) {
+      toggleProductSelection(product, cardElement);
+    }
   });
 }
 
@@ -130,15 +109,182 @@ categoryFilter.addEventListener("change", async (e) => {
   displayProducts(filteredProducts);
 });
 
-/* Chat form submission handler - placeholder for OpenAI integration */
+/* Chat history to maintain context */
+const chatHistory = [
+  {
+    role: "system",
+    content:
+      "You are a skincare and beauty expert. Answer questions about routines, skincare, haircare, makeup, fragrance, and related topics.",
+  },
+];
+
+/* Function to handle user questions */
+async function handleUserQuestion(question) {
+  chatHistory.push({ role: "user", content: question });
+
+  const apiKey = OPENAI_API_KEY; // Ensure secrets.js is loaded
+  const apiUrl = "https://api.openai.com/v1/chat/completions";
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: chatHistory,
+        max_tokens: 200,
+      }),
+    });
+
+    const data = await response.json();
+    const reply = data.choices[0].message.content;
+
+    chatHistory.push({ role: "assistant", content: reply });
+    chatWindow.innerHTML += `<p><strong>You:</strong> ${question}</p><p><strong>AI:</strong> ${reply}</p>`;
+    chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
+  } catch (error) {
+    console.error("Error handling user question:", error);
+    chatWindow.innerHTML +=
+      "<p>There was an error processing your question. Please try again later.</p>";
+  }
+}
+
+/* Selected products array */
+const selectedProducts = [];
+
+/* Update product selection logic */
+function toggleProductSelection(product, cardElement) {
+  const productIndex = selectedProducts.findIndex(
+    (item) => item.name === product.name
+  );
+
+  if (productIndex === -1) {
+    // Add full product object to selectedProducts
+    selectedProducts.push(product);
+    cardElement.classList.add("highlight");
+  } else {
+    // Remove product from selectedProducts
+    selectedProducts.splice(productIndex, 1);
+    cardElement.classList.remove("highlight");
+  }
+
+  updateSelectedProductsList();
+}
+
+/* Function to update the Selected Products section */
+function updateSelectedProductsList() {
+  const selectedProductsList = document.getElementById("selectedProductsList");
+  selectedProductsList.innerHTML = selectedProducts
+    .map(
+      (product) => `
+      <div class="selected-product-item">
+        <span>${product.name}</span>
+        <button class="remove-btn" data-name="${product.name}">Remove</button>
+      </div>
+    `
+    )
+    .join("");
+
+  // Add event listeners to remove buttons
+  const removeButtons = document.querySelectorAll(".remove-btn");
+  removeButtons.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const productName = e.target.dataset.name;
+      removeProductByName(productName);
+    });
+  });
+}
+
+/* Function to remove a product by name */
+function removeProductByName(productName) {
+  const productIndex = selectedProducts.findIndex(
+    (item) => item.name === productName
+  );
+
+  if (productIndex !== -1) {
+    selectedProducts.splice(productIndex, 1);
+    updateSelectedProductsList();
+
+    // Remove highlight from product card
+    const productCards = document.querySelectorAll(".product-card");
+    productCards.forEach((card) => {
+      if (card.querySelector("h3").textContent === productName) {
+        card.classList.remove("highlight");
+      }
+    });
+  }
+}
+
+/* Improved generateRoutine function */
+async function generateRoutine() {
+  if (selectedProducts.length === 0) {
+    chatWindow.innerHTML +=
+      "<p>Please select some products to generate a routine.</p>";
+    return;
+  }
+
+  const apiKey = OPENAI_API_KEY; // Ensure secrets.js is loaded
+  const apiUrl = "https://api.openai.com/v1/chat/completions";
+
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are a skincare and beauty expert. Create a personalized routine based on the provided products.",
+    },
+    {
+      role: "user",
+      content: JSON.stringify(selectedProducts),
+    },
+  ];
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: messages,
+        max_tokens: 200,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.choices || !data.choices.length) {
+      throw new Error("No valid response from the API.");
+    }
+
+    const routine = data.choices[0].message.content;
+    chatWindow.innerHTML += `<p><strong>Routine:</strong> ${routine}</p>`;
+    chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
+  } catch (error) {
+    console.error("Error generating routine:", error);
+    chatWindow.innerHTML += `<p>There was an error generating your routine: ${error.message}</p>`;
+  }
+}
+
+/* Add event listener to Generate Routine button */
+const generateRoutineButton = document.getElementById("generateRoutine");
+generateRoutineButton.addEventListener("click", generateRoutine);
+
+/* Chat form submission handler */
 chatForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  chatWindow.innerHTML = "Connect to the OpenAI API for a response!";
+  const userInput = document.getElementById("userInput").value.trim();
+  if (userInput) {
+    handleUserQuestion(userInput);
+    document.getElementById("userInput").value = ""; // Clear input field
+  }
 });
-
-/* Initial setup for "Selected Products" section */
-document.body.insertAdjacentHTML(
-  "beforeend",
-  `<div id="selectedProducts" class="selected-products-section"></div>`
-);
