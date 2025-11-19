@@ -113,7 +113,7 @@ body {
 
 .chat-form button {
   font-size: 18px;
-  background: #000;
+  background: #ff003b;
   color: #fff;
   border: none;
   padding: 12px;
@@ -127,12 +127,27 @@ body {
 }
 
 .chat-form button:hover {
-  background: #666666;
+  background: #cc0030;
 }
 
 .chat-form button:focus {
-  outline: 2px solid #000;
+  outline: 2px solid #ff003b;
   outline-offset: 2px;
+}
+
+/* Improve styling for the X remove button */
+.remove-btn {
+  background-color: transparent;
+  color: #ff003b;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.remove-btn:hover {
+  color: #cc0030;
 }
 
 /* visually hidden */
@@ -254,20 +269,6 @@ body {
   font-size: 16px;
 }
 
-.remove-btn {
-  background-color: #ff4d4d;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.remove-btn:hover {
-  background-color: #e60000;
-}
-
 .generate-btn {
   width: 100%;
   margin-top: 20px;
@@ -275,7 +276,7 @@ body {
   font-size: 18px;
   font-weight: 500;
   color: #fff;
-  background: #000;
+  background: #ff003b;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -283,7 +284,7 @@ body {
 }
 
 .generate-btn:hover {
-  background: #666;
+  background: #cc0030;
 }
 
 .generate-btn i {
@@ -353,4 +354,74 @@ body {
 
 .close-modal:hover {
   color: #000;
+}
+
+/* Define CSS variables for brand colors */
+:root {
+  --primary-color: #ff003b;
+  --secondary-color: #e3a535;
+  --text-color: #fff;
+  --hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --transition-speed: 0.3s;
+}
+
+/* Style the View Details button with gradients and hover effects */
+.view-details-btn {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  color: var(--text-color);
+  border: 2px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-speed),
+    transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.view-details-btn:hover {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  transform: scale(1.05);
+  box-shadow: var(--hover-shadow);
+}
+
+.view-details-btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Style the Clear All Selections button with consistent design */
+.clear-all-btn {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  color: var(--text-color);
+  border: 2px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-speed),
+    transform var(--transition-speed), box-shadow var(--transition-speed);
+  margin-top: 20px;
+}
+
+.clear-all-btn:hover {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  transform: scale(1.05);
+  box-shadow: var(--hover-shadow);
+}
+
+.clear-all-btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }

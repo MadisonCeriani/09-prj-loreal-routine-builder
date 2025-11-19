@@ -155,7 +155,39 @@ async function handleUserQuestion(question) {
 /* Selected products array */
 const selectedProducts = [];
 
-/* Update product selection logic */
+/* Save selected products to localStorage */
+function saveSelectedProducts() {
+  localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+}
+
+/* Load selected products from localStorage */
+function loadSelectedProducts() {
+  const savedProducts = localStorage.getItem("selectedProducts");
+  if (savedProducts) {
+    const parsedProducts = JSON.parse(savedProducts);
+    parsedProducts.forEach((product) => {
+      selectedProducts.push(product);
+      const cardElement = Array.from(
+        document.querySelectorAll(".product-card")
+      ).find((card) => card.querySelector("h3").textContent === product.name);
+      if (cardElement) {
+        cardElement.classList.add("highlight");
+      }
+    });
+    updateSelectedProductsList();
+  }
+}
+
+/* Show or hide Clear All button based on selections */
+function toggleClearAllButton() {
+  if (selectedProducts.length > 0) {
+    clearAllButton.style.display = "block";
+  } else {
+    clearAllButton.style.display = "none";
+  }
+}
+
+/* Update product selection logic to toggle Clear All button */
 function toggleProductSelection(product, cardElement) {
   const productIndex = selectedProducts.findIndex(
     (item) => item.name === product.name
@@ -172,9 +204,24 @@ function toggleProductSelection(product, cardElement) {
   }
 
   updateSelectedProductsList();
+  saveSelectedProducts();
+  toggleClearAllButton();
 }
 
-/* Function to update the Selected Products section */
+/* Clear all functionality */
+function clearAllSelections() {
+  selectedProducts.length = 0; // Clear the array
+  saveSelectedProducts();
+  updateSelectedProductsList();
+
+  // Remove highlights from all product cards
+  const productCards = document.querySelectorAll(".product-card");
+  productCards.forEach((card) => card.classList.remove("highlight"));
+
+  toggleClearAllButton();
+}
+
+/* Update the Selected Products section to use X icon for remove button */
 function updateSelectedProductsList() {
   const selectedProductsList = document.getElementById("selectedProductsList");
   selectedProductsList.innerHTML = selectedProducts
@@ -182,7 +229,7 @@ function updateSelectedProductsList() {
       (product) => `
       <div class="selected-product-item">
         <span>${product.name}</span>
-        <button class="remove-btn" data-name="${product.name}">Remove</button>
+        <button class="remove-btn" data-name="${product.name}">✕</button>
       </div>
     `
     )
@@ -216,6 +263,8 @@ function removeProductByName(productName) {
       }
     });
   }
+
+  toggleClearAllButton();
 }
 
 /* Improved generateRoutine function */
@@ -287,4 +336,19 @@ chatForm.addEventListener("submit", (e) => {
     handleUserQuestion(userInput);
     document.getElementById("userInput").value = ""; // Clear input field
   }
+});
+
+/* Add Clear All button functionality */
+const clearAllButton = document.createElement("button");
+clearAllButton.textContent = "Clear All Selections";
+clearAllButton.classList.add("clear-all-btn");
+clearAllButton.style.display = "none"; // Initially hidden
+clearAllButton.addEventListener("click", clearAllSelections);
+
+document.querySelector(".selected-products").appendChild(clearAllButton);
+
+/* Load saved products on page load */
+window.addEventListener("load", () => {
+  loadSelectedProducts();
+  toggleClearAllButton();
 });
