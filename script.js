@@ -118,9 +118,24 @@ const chatHistory = [
   {
     role: "system",
     content:
-      "You are a skincare and beauty expert. Answer questions about routines, skincare, haircare, makeup, fragrance, and related topics.",
+      "You are a skincare and beauty expert. Answer questions about routines, skincare, haircare, makeup, fragrance, ingredients, and beauty-related topics. Do not answer questions outside these areas. If a question is unrelated, respond with: 'I'm here to help with skincare, beauty routines, haircare, makeup, and fragrance questions. Try asking me something in those areas!'",
   },
 ];
+
+/* Function to check if the assistant's response is on-topic */
+function isResponseOnTopic(response) {
+  const allowedTopics = [
+    "skincare",
+    "beauty routines",
+    "haircare",
+    "makeup",
+    "fragrance",
+    "ingredients",
+  ];
+
+  // Check if the response contains any of the allowed topics
+  return allowedTopics.some((topic) => response.toLowerCase().includes(topic));
+}
 
 /* Generate Routine Button */
 async function generateRoutine() {
@@ -136,7 +151,7 @@ async function generateRoutine() {
     {
       role: "system",
       content:
-        "You are a skincare and beauty expert. Create a personalized routine based on the provided products.",
+        "You are a skincare and beauty expert. Create a personalized routine based on the provided products. Do not include unrelated topics.",
     },
     {
       role: "user",
@@ -167,8 +182,15 @@ async function generateRoutine() {
       throw new Error("Invalid response from Worker.");
     }
 
-    const routine = data.reply;
-    chatWindow.innerHTML += `<p><strong>Routine:</strong> ${routine}</p>`;
+    let routine = data.reply;
+
+    // Check if the response is on-topic
+    if (!isResponseOnTopic(routine)) {
+      routine =
+        "I'm here to help with skincare, beauty routines, haircare, makeup, and fragrance questions. Try asking me something in those areas!";
+    }
+
+    chatWindow.innerHTML += `<div class=\"bubble ai\"><strong>Routine:</strong> ${routine}</div>`;
     chatWindow.scrollTop = chatWindow.scrollHeight;
   } catch (error) {
     console.error("Error generating routine:", error);
@@ -184,7 +206,7 @@ async function handleUserQuestion(question) {
 
   // Add user message to chat window
   chatWindow.innerHTML += `
-    <div class="bubble user">${question}</div>
+    <div class=\"bubble user\">${question}</div>
   `;
 
   // Add loading message to chat window
@@ -217,7 +239,14 @@ async function handleUserQuestion(question) {
       throw new Error("Invalid response from Worker.");
     }
 
-    const reply = data.reply;
+    let reply = data.reply;
+
+    // Check if the response is on-topic
+    if (!isResponseOnTopic(reply)) {
+      reply =
+        "I'm here to help with skincare, beauty routines, haircare, makeup, and fragrance questions. Try asking me something in those areas!";
+    }
+
     chatHistory.push({ role: "assistant", content: reply });
 
     // Remove loading message
@@ -225,7 +254,7 @@ async function handleUserQuestion(question) {
 
     // Add AI response to chat window
     chatWindow.innerHTML += `
-      <div class="bubble ai">${reply}</div>
+      <div class=\"bubble ai\">${reply}</div>
     `;
 
     chatWindow.scrollTop = chatWindow.scrollHeight;
