@@ -12,7 +12,8 @@ productsContainer.innerHTML = `
 `;
 
 /* Update Selected Products header */
-document.querySelector(".selected-products h2").textContent = "Selected Products ✨";
+document.querySelector(".selected-products h2").textContent =
+  "Selected Products ✨";
 
 /* Load product data from JSON file */
 async function loadProducts() {
@@ -350,8 +351,32 @@ clearAllButton.addEventListener("click", clearAllSelections);
 
 document.querySelector(".selected-products").appendChild(clearAllButton);
 
+/* Add a label for the category filter */
+const categoryFilterLabel = document.createElement("label");
+categoryFilterLabel.setAttribute("for", "categoryFilter");
+categoryFilterLabel.textContent = "Choose a Category:";
+categoryFilterLabel.classList.add("visually-hidden"); // Keeps it accessible but hidden visually
+
+const searchSection = document.querySelector(".search-section");
+searchSection.insertBefore(categoryFilterLabel, searchSection.firstChild);
+
 /* Load saved products on page load */
 window.addEventListener("load", () => {
   loadSelectedProducts();
   toggleClearAllButton();
 });
+
+/* Add aria-labels and improve accessibility */
+const generateRoutineBtn = document.getElementById("generateRoutine");
+generateRoutineBtn.setAttribute(
+  "aria-label",
+  "Generate a personalized routine based on selected products"
+);
+
+const viewDetailsBtns = document.querySelectorAll(".view-details-btn");
+viewDetailsBtns.forEach((button) => {
+  button.setAttribute("aria-label", `View details for ${button.dataset.name}`);
+});
+
+const clearAllBtn = document.querySelector(".clear-all-btn");
+clearAllBtn.setAttribute("aria-label", "Clear all selected products");
