@@ -582,7 +582,7 @@ body[dir="rtl"] .products-grid {
 }
 
 .bubble.user {
-  background-color: #ffe6f0; /* Light pink or theme-friendly color */
+  background-color: #ff003b; /* Light pink or theme-friendly color */
   color: #333;
   align-self: flex-end;
   text-align: right;
