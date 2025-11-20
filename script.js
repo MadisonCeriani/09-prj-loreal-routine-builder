@@ -122,37 +122,106 @@ const chatHistory = [
   },
 ];
 
-/* Function to handle user questions */
+/* Generate Routine Button */
+async function generateRoutine() {
+  if (selectedProducts.length === 0) {
+    chatWindow.innerHTML +=
+      "<p>Please select some products to generate a routine.</p>";
+    return;
+  }
+
+  const apiUrl = "https://autumn-math-a526.maddi-ceriani.workers.dev/";
+
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are a skincare and beauty expert. Create a personalized routine based on the provided products.",
+    },
+    {
+      role: "user",
+      content: JSON.stringify(selectedProducts),
+    },
+  ];
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // NO Authorization header!
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: messages,
+        max_tokens: 200,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Worker error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.reply) {
+      throw new Error("Invalid response from Worker.");
+    }
+
+    const routine = data.reply;
+    chatWindow.innerHTML += `<p><strong>Routine:</strong> ${routine}</p>`;
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  } catch (error) {
+    console.error("Error generating routine:", error);
+    chatWindow.innerHTML += `<p>There was an error generating your routine: ${error.message}</p>`;
+  }
+}
+
+/* Chat Question Handler */
 async function handleUserQuestion(question) {
   chatHistory.push({ role: "user", content: question });
 
-  const apiKey = OPENAI_API_KEY; // Ensure secrets.js is loaded
-  const apiUrl = "https://api.openai.com/v1/chat/completions";
+  const apiUrl = "https://autumn-math-a526.maddi-ceriani.workers.dev/";
 
   try {
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4o",
         messages: chatHistory,
         max_tokens: 200,
       }),
     });
 
-    const data = await response.json();
-    const reply = data.choices[0].message.content;
+    if (!response.ok) {
+      throw new Error(`Worker error: ${response.status}`);
+    }
 
+    const data = await response.json();
+
+    if (!data.reply) {
+      throw new Error("Invalid response from Worker.");
+    }
+
+    const reply = data.reply;
     chatHistory.push({ role: "assistant", content: reply });
-    chatWindow.innerHTML += `<p><strong>You:</strong> ${question}</p><p><strong>AI:</strong> ${reply}</p>`;
-    chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
+
+    // Format the AI's response for better readability
+    const formattedReply = reply
+      .split("\n")
+      .map((line) => `<p>${line}</p>`) // Wrap each line in a paragraph
+      .join("");
+
+    chatWindow.innerHTML += `
+      <p><strong>You:</strong> ${question}</p>
+      <div class="ai-response">${formattedReply}</div>
+    `;
+    chatWindow.scrollTop = chatWindow.scrollHeight;
   } catch (error) {
     console.error("Error handling user question:", error);
-    chatWindow.innerHTML +=
-      "<p>There was an error processing your question. Please try again later.</p>";
+    chatWindow.innerHTML += `<p>There was an error processing your question: ${error.message}</p>`;
   }
 }
 
@@ -271,62 +340,6 @@ function removeProductByName(productName) {
   toggleClearAllButton();
 }
 
-/* Improved generateRoutine function */
-async function generateRoutine() {
-  if (selectedProducts.length === 0) {
-    chatWindow.innerHTML +=
-      "<p>Please select some products to generate a routine.</p>";
-    return;
-  }
-
-  const apiKey = OPENAI_API_KEY; // Ensure secrets.js is loaded
-  const apiUrl = "https://api.openai.com/v1/chat/completions";
-
-  const messages = [
-    {
-      role: "system",
-      content:
-        "You are a skincare and beauty expert. Create a personalized routine based on the provided products.",
-    },
-    {
-      role: "user",
-      content: JSON.stringify(selectedProducts),
-    },
-  ];
-
-  try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: messages,
-        max_tokens: 200,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.choices || !data.choices.length) {
-      throw new Error("No valid response from the API.");
-    }
-
-    const routine = data.choices[0].message.content;
-    chatWindow.innerHTML += `<p><strong>Routine:</strong> ${routine}</p>`;
-    chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
-  } catch (error) {
-    console.error("Error generating routine:", error);
-    chatWindow.innerHTML += `<p>There was an error generating your routine: ${error.message}</p>`;
-  }
-}
-
 /* Add event listener to Generate Routine button */
 const generateRoutineButton = document.getElementById("generateRoutine");
 generateRoutineButton.addEventListener("click", generateRoutine);
@@ -380,3 +393,37 @@ viewDetailsBtns.forEach((button) => {
 
 const clearAllBtn = document.querySelector(".clear-all-btn");
 clearAllBtn.setAttribute("aria-label", "Clear all selected products");
+
+/* Add event listener for product search */
+const productSearch = document.getElementById("productSearch");
+
+productSearch.addEventListener("input", async (e) => {
+  const searchTerm = e.target.value.toLowerCase();
+  const products = await loadProducts();
+  const selectedCategory = categoryFilter.value;
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.brand.toLowerCase().includes(searchTerm) ||
+      product.description.toLowerCase().includes(searchTerm);
+
+    const matchesCategory =
+      !selectedCategory || product.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  displayProducts(filteredProducts);
+});
+
+/* Add event listener for RTL toggle */
+const rtlSwitch = document.getElementById("rtlSwitch");
+
+rtlSwitch.addEventListener("change", (event) => {
+  if (event.target.checked) {
+    document.body.setAttribute("dir", "rtl");
+  } else {
+    document.body.removeAttribute("dir");
+  }
+});

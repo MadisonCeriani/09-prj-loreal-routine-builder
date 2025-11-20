@@ -21,6 +21,16 @@
       <header class="site-header">
         <img src="img/loreal-logo.png" alt="L'Oréal Logo" class="logo" />
         <h1 class="site-title">Smart Routine &amp; Product Advisor</h1>
+
+        <!-- RTL Mode Toggle -->
+        <div class="rtl-toggle">
+          <label for="rtlSwitch">Enable RTL Mode</label>
+          <input
+            type="checkbox"
+            id="rtlSwitch"
+            aria-label="Enable Right-to-Left Mode"
+          />
+        </div>
       </header>
 
       <!-- Category Filter -->
@@ -37,6 +47,16 @@
           <option value="suncare">Suncare</option>
           <option value="fragrance">Fragrance</option>
         </select>
+      </div>
+
+      <!-- Product Search Bar -->
+      <div class="search-bar">
+        <input
+          type="text"
+          id="productSearch"
+          placeholder="Search products..."
+          aria-label="Search products"
+        />
       </div>
 
       <!-- Products Grid -->

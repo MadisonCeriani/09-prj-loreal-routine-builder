@@ -58,6 +58,27 @@ body {
   border-color: #666;
 }
 
+/* Styling for the product search bar */
+.search-bar {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 600px;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #000;
+  border-radius: 8px;
+  outline: none;
+}
+
+.search-bar input:focus {
+  border-color: #666;
+}
+
 /* chat section */
 .chatbox {
   margin: 40px 0;
@@ -279,7 +300,7 @@ body {
 
 .product-card {
   flex: 0 1 calc(33.333% - 14px);
-  border: 1px solid #ccc;
+  border: 1px solid #000; /* Change border color to black */
   padding: 15px;
   border-radius: 4px;
   display: flex;
@@ -511,4 +532,39 @@ body {
 .generate-btn:focus {
   outline: 2px solid #ff003b; /* Primary brand color */
   outline-offset: 2px;
+}
+
+/* RTL Mode Toggle */
+.rtl-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.rtl-toggle label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* RTL Mode Styles */
+body[dir="rtl"] {
+  direction: rtl;
+}
+
+body[dir="rtl"] .site-header {
+  text-align: right;
+}
+
+body[dir="rtl"] .search-section,
+body[dir="rtl"] .search-bar {
+  flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .chat-form {
+  flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .products-grid {
+  justify-content: flex-end;
 }
