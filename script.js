@@ -182,6 +182,18 @@ async function handleUserQuestion(question) {
 
   const apiUrl = "https://autumn-math-a526.maddi-ceriani.workers.dev/";
 
+  // Add user message to chat window
+  chatWindow.innerHTML += `
+    <div class="bubble user">${question}</div>
+  `;
+
+  // Add loading message to chat window
+  const loadingMessage = document.createElement("div");
+  loadingMessage.className = "bubble ai";
+  loadingMessage.textContent = "Generating response...";
+  chatWindow.appendChild(loadingMessage);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+
   try {
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -208,20 +220,18 @@ async function handleUserQuestion(question) {
     const reply = data.reply;
     chatHistory.push({ role: "assistant", content: reply });
 
-    // Format the AI's response for better readability
-    const formattedReply = reply
-      .split("\n")
-      .map((line) => `<p>${line}</p>`) // Wrap each line in a paragraph
-      .join("");
+    // Remove loading message
+    loadingMessage.remove();
 
+    // Add AI response to chat window
     chatWindow.innerHTML += `
-      <p><strong>You:</strong> ${question}</p>
-      <div class="ai-response">${formattedReply}</div>
+      <div class="bubble ai">${reply}</div>
     `;
+
     chatWindow.scrollTop = chatWindow.scrollHeight;
   } catch (error) {
     console.error("Error handling user question:", error);
-    chatWindow.innerHTML += `<p>There was an error processing your question: ${error.message}</p>`;
+    loadingMessage.textContent = `There was an error processing your question: ${error.message}`;
   }
 }
 

@@ -568,3 +568,35 @@ body[dir="rtl"] .chat-form {
 body[dir="rtl"] .products-grid {
   justify-content: flex-end;
 }
+
+/* Chat Bubbles */
+.bubble {
+  max-width: 70%;
+  padding: 12px 16px;
+  margin: 8px 0;
+  border-radius: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bubble.user {
+  background-color: #ffe6f0; /* Light pink or theme-friendly color */
+  color: #333;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.bubble.ai {
+  background-color: #f0f0f0; /* Soft neutral tone */
+  color: #333;
+  align-self: flex-start;
+  text-align: left;
+}
+
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
